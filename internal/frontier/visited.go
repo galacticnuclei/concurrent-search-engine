@@ -28,6 +28,18 @@ func (v *Visited) Add(url string) {
 	v.urls[url] = struct{}{}
 }
 
+func (v *Visited) AddIfNotSeen(url string) bool {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if _, exists := v.urls[url]; exists {
+		return false
+	}
+
+	v.urls[url] = struct{}{}
+	return true
+}
+
 func (v *Visited) Count() int {
 	v.mu.RLock()
 	defer v.mu.RUnlock()

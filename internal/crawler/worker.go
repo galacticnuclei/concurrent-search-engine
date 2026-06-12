@@ -6,7 +6,7 @@ import (
 	"github.com/galacticnuclei/concurrent-search-engine/internal/frontier"
 )
 
-func StartWorker(id int, f *frontier.Frontier) {
+func StartWorker(id int, f *frontier.Frontier, visited *frontier.Visited) {
 	for url := range f.Pop() {
 		fmt.Printf("Worker %d received %s\n", id, url)
 
@@ -21,12 +21,29 @@ func StartWorker(id int, f *frontier.Frontier) {
 			doc.Title,
 			len(doc.Content),
 		)
+
 		fmt.Printf(
 			"Links Found: %d\n",
 			len(doc.Links),
 		)
-		for i := 0; i < len(doc.Links) && i < 5; i++ {
-			fmt.Println(doc.Links[i])
+
+		newURLs := 0
+
+		for _, link := range doc.Links {
+			if visited.AddIfNotSeen(link) {
+				f.Push(link)
+				newURLs++
+			}
 		}
+
+		fmt.Printf(
+			"Discovered %d new URLs\n",
+			newURLs,
+		)
+
+		fmt.Printf(
+			"Visited Count: %d\n",
+			visited.Count(),
+		)
 	}
 }

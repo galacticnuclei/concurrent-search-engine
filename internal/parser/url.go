@@ -47,6 +47,8 @@ func NormalizeURL(baseURL, href string) (string, bool) {
 	// Remove fragments like:
 	// https://site.com/page#section
 	resolved.Fragment = ""
-
+	if resolved.Path == "/" {
+		resolved.Path = ""
+	}
 	return resolved.String(), true
 }

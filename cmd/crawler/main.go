@@ -8,16 +8,24 @@ import (
 )
 
 func main() {
-	f := frontier.New(100)
+	f := frontier.New(10000)
+	visited := frontier.NewVisited()
 
 	for i := 1; i <= 5; i++ {
-		go crawler.StartWorker(i, f)
+		go crawler.StartWorker(i, f, visited)
 	}
 
-	f.Push("https://google.com")
-	f.Push("https://github.com")
-	f.Push("https://golang.org")
-	f.Push("https://example.com")
+	seedURLs := []string{
+		"https://google.com",
+		"https://github.com",
+		"https://golang.org",
+		"https://example.com",
+	}
 
-	time.Sleep(5 * time.Second)
+	for _, url := range seedURLs {
+		if visited.AddIfNotSeen(url) {
+			f.Push(url)
+		}
+	}
+	time.Sleep(60 * time.Second)
 }
