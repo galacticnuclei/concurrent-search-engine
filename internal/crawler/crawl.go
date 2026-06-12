@@ -28,7 +28,7 @@ func Crawl(url string) (*Document, error) {
 
 	title := parser.ExtractTitle(doc)
 	content := parser.ExtractContent(doc)
-
+	links := parser.ExtractLinks(doc)
 	fmt.Printf(
 		"Fetched %s (status: %d)\n",
 		url,
@@ -39,6 +39,6 @@ func Crawl(url string) (*Document, error) {
 		URL:     url,
 		Title:   title,
 		Content: content,
-		Links:   []string{},
+		Links:   links,
 	}, nil
 }

@@ -21,5 +21,12 @@ func StartWorker(id int, f *frontier.Frontier) {
 			doc.Title,
 			len(doc.Content),
 		)
+		fmt.Printf(
+			"Links Found: %d\n",
+			len(doc.Links),
+		)
+		for i := 0; i < len(doc.Links) && i < 5; i++ {
+			fmt.Println(doc.Links[i])
+		}
 	}
 }
