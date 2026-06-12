@@ -14,29 +14,40 @@ var client = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-func Crawl(url string) (*Document, error) {
-	resp, err := client.Get(url)
+func Crawl(pageURL string) (*Document, error) {
+	resp, err := client.Get(pageURL)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching %s: %w", url, err)
+		return nil, fmt.Errorf("error fetching %s: %w", pageURL, err)
 	}
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse %s: %w", url, err)
+		return nil, fmt.Errorf("failed to parse %s: %w", pageURL, err)
 	}
 
 	title := parser.ExtractTitle(doc)
 	content := parser.ExtractContent(doc)
-	links := parser.ExtractLinks(doc)
+
+	rawLinks := parser.ExtractLinks(doc)
+
+	var links []string
+
+	for _, link := range rawLinks {
+		normalized, ok := parser.NormalizeURL(pageURL, link)
+		if ok {
+			links = append(links, normalized)
+		}
+	}
+
 	fmt.Printf(
 		"Fetched %s (status: %d)\n",
-		url,
+		pageURL,
 		resp.StatusCode,
 	)
 
 	return &Document{
-		URL:     url,
+		URL:     pageURL,
 		Title:   title,
 		Content: content,
 		Links:   links,
