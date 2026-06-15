@@ -17,19 +17,23 @@ func NewDocumentStore(db *sql.DB) *DocumentStore {
 }
 
 func (s *DocumentStore) Save(doc *models.Document) error {
+	contentHash := HashContent(doc.Content)
+
 	_, err := s.db.Exec(
 		`
 		INSERT INTO documents (
 			url,
 			title,
-			content
+			content,
+			content_hash
 		)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (url) DO NOTHING
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (content_hash) DO NOTHING
 		`,
 		doc.URL,
 		doc.Title,
 		doc.Content,
+		contentHash,
 	)
 
 	return err
