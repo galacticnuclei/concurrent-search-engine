@@ -1,4 +1,4 @@
-'''package crawler
+package models
 
 type Document struct {
 	URL     string
@@ -6,4 +6,3 @@ type Document struct {
 	Content string
 	Links   []string
 }
-'''

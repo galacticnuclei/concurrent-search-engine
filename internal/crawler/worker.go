@@ -5,6 +5,7 @@ import (
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/frontier"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/robots"
+	"github.com/galacticnuclei/concurrent-search-engine/internal/storage"
 )
 
 func StartWorker(
@@ -12,6 +13,7 @@ func StartWorker(
 	f *frontier.Frontier,
 	visited *frontier.Visited,
 	robotsCache *robots.Cache,
+	store *storage.DocumentStore,
 ) {
 	for url := range f.Pop() {
 		fmt.Printf("Worker %d received %s\n", id, url)
@@ -30,7 +32,13 @@ func StartWorker(
 			fmt.Printf("Worker %d error: %v\n", id, err)
 			continue
 		}
-
+		if err := store.Save(doc); err != nil {
+			fmt.Printf(
+				"Worker %d failed to save document: %v\n",
+				id,
+				err,
+			)
+		}
 		fmt.Printf(
 			"Document: %s (%d chars)\n",
 			doc.Title,

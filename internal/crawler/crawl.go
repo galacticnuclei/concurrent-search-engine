@@ -7,6 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
+	"github.com/galacticnuclei/concurrent-search-engine/internal/models"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/parser"
 )
 
@@ -14,7 +15,7 @@ var client = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-func Crawl(pageURL string) (*Document, error) {
+func Crawl(pageURL string) (*models.Document, error) {
 	resp, err := client.Get(pageURL)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching %s: %w", pageURL, err)
@@ -46,7 +47,7 @@ func Crawl(pageURL string) (*Document, error) {
 		resp.StatusCode,
 	)
 
-	return &Document{
+	return &models.Document{
 		URL:     pageURL,
 		Title:   title,
 		Content: content,
