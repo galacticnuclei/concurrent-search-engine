@@ -40,7 +40,7 @@ func main() {
 		len(idx.Terms),
 	)
 
-	results := idx.SearchQuery("github copilot")
+	results := idx.SearchOR("github copilot")
 
 	limit := 10
 	if len(results) < limit {

@@ -134,3 +134,72 @@ func (idx *InvertedIndex) SearchQuery(
 
 	return results
 }
+
+func (idx *InvertedIndex) SearchAND(
+	query string,
+) []Result {
+	tokens := Tokenize(query)
+
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	counts := make(map[int]int)
+
+	// Count how many query terms each document contains
+	for _, term := range tokens {
+		postings := idx.Terms[term]
+
+		for docID := range postings {
+			counts[docID]++
+		}
+	}
+
+	// Compute TF-IDF scores only for documents
+	// that contain ALL query terms
+	scores := make(map[int]float64)
+
+	for docID, count := range counts {
+		if count == len(tokens) {
+			for _, term := range tokens {
+				postings := idx.Terms[term]
+				idf := idx.IDF(term)
+
+				freq := postings[docID]
+				tf := float64(freq)
+
+				scores[docID] += tf * idf
+			}
+		}
+	}
+
+	// Convert scores map into results slice
+	var results []Result
+
+	for docID, score := range scores {
+		results = append(
+			results,
+			Result{
+				DocID: docID,
+				Score: score,
+			},
+		)
+	}
+
+	// Sort by descending score
+	sort.Slice(
+		results,
+		func(i, j int) bool {
+			return results[i].Score >
+				results[j].Score
+		},
+	)
+
+	return results
+}
+
+func (idx *InvertedIndex) SearchOR(
+	query string,
+) []Result {
+	return idx.SearchQuery(query)
+}
