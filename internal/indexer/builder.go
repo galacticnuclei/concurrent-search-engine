@@ -36,3 +36,32 @@ func LoadDocuments(db *sql.DB) ([]models.Document, error) {
 
 	return docs, nil
 }
+
+func LoadDocumentMap(
+	db *sql.DB,
+) (map[int]string, error) {
+	rows, err := db.Query(`
+		SELECT id, url
+		FROM documents
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	docMap := make(map[int]string)
+
+	for rows.Next() {
+		var id int
+		var url string
+
+		err := rows.Scan(&id, &url)
+		if err != nil {
+			return nil, err
+		}
+
+		docMap[id] = url
+	}
+
+	return docMap, nil
+}

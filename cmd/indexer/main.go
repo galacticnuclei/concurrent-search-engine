@@ -21,7 +21,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	docMap, err := indexer.LoadDocumentMap(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("Loaded %d documents\n", len(docs))
 	idx := indexer.New()
 
@@ -37,5 +40,21 @@ func main() {
 		len(idx.Terms),
 	)
 
-	fmt.Println(idx.SearchRanked("github")[:10])
+	results := idx.SearchRanked("github")
+
+	limit := 10
+	if len(results) < limit {
+		limit = len(results)
+	}
+
+	for i := 0; i < limit; i++ {
+		result := results[i]
+
+		fmt.Printf(
+			"%d. %s\n   score: %d\n\n",
+			i+1,
+			docMap[result.DocID],
+			result.Score,
+		)
+	}
 }
