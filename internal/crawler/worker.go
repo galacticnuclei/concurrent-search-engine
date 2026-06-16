@@ -39,6 +39,15 @@ func StartWorker(
 				err,
 			)
 		}
+
+		if err := store.SaveLinks(doc); err != nil {
+			fmt.Printf(
+				"Worker %d failed to save links: %v\n",
+				id,
+				err,
+			)
+		}
+
 		fmt.Printf(
 			"Document: %s (%d chars)\n",
 			doc.Title,

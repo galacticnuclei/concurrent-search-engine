@@ -38,3 +38,27 @@ func (s *DocumentStore) Save(doc *models.Document) error {
 
 	return err
 }
+
+func (s *DocumentStore) SaveLinks(
+	doc *models.Document,
+) error {
+	for _, link := range doc.Links {
+		_, err := s.db.Exec(
+			`
+			INSERT INTO links (
+				from_url,
+				to_url
+			)
+			VALUES ($1, $2)
+			ON CONFLICT DO NOTHING
+			`,
+			doc.URL,
+			link,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
