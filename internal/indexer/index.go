@@ -92,3 +92,45 @@ func (idx *InvertedIndex) SearchRanked(
 
 	return results
 }
+
+func (idx *InvertedIndex) SearchQuery(
+	query string,
+) []Result {
+	tokens := Tokenize(query)
+
+	scores := make(map[int]float64)
+
+	for _, term := range tokens {
+		postings := idx.Terms[term]
+		idf := idx.IDF(term)
+
+		for docID, freq := range postings {
+			tf := float64(freq)
+			score := tf * idf
+
+			scores[docID] += score
+		}
+	}
+
+	var results []Result
+
+	for docID, score := range scores {
+		results = append(
+			results,
+			Result{
+				DocID: docID,
+				Score: score,
+			},
+		)
+	}
+
+	sort.Slice(
+		results,
+		func(i, j int) bool {
+			return results[i].Score >
+				results[j].Score
+		},
+	)
+
+	return results
+}
