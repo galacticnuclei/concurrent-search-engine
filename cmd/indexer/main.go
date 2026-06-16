@@ -51,7 +51,7 @@ func main() {
 		result := results[i]
 
 		fmt.Printf(
-			"%d. %s\n   score: %d\n\n",
+			"%d. %s\n   score: %.4f\n\n",
 			i+1,
 			docMap[result.DocID],
 			result.Score,
