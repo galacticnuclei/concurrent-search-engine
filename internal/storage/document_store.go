@@ -62,3 +62,32 @@ func (s *DocumentStore) SaveLinks(
 
 	return nil
 }
+
+func (s *DocumentStore) ContentChanged(
+	url string,
+	content string,
+) (bool, error) {
+	contentHash := HashContent(content)
+
+	var existingHash string
+
+	err := s.db.QueryRow(
+		`
+		SELECT content_hash
+		FROM documents
+		WHERE url = $1
+		`,
+		url,
+	).Scan(&existingHash)
+
+	if err == sql.ErrNoRows {
+		return true, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return existingHash != contentHash,
+		nil
+}

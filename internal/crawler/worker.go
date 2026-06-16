@@ -32,6 +32,29 @@ func StartWorker(
 			fmt.Printf("Worker %d error: %v\n", id, err)
 			continue
 		}
+		changed, err :=
+			store.ContentChanged(
+				doc.URL,
+				doc.Content,
+			)
+
+		if err != nil {
+			fmt.Printf(
+				"Worker %d failed to check content: %v\n",
+				id,
+				err,
+			)
+			continue
+		}
+
+		if !changed {
+			fmt.Printf(
+				"Worker %d skipped %s (unchanged)\n",
+				id,
+				url,
+			)
+			continue
+		}
 		if err := store.Save(doc); err != nil {
 			fmt.Printf(
 				"Worker %d failed to save document: %v\n",
