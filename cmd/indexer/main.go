@@ -18,16 +18,37 @@ func main() {
 	defer db.Close()
 
 	docs, err := indexer.LoadDocuments(db)
+	graph, err := indexer.LoadLinkGraph(db)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf(
+		"Loaded %d pages with outgoing links\n",
+		len(graph),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ranks := indexer.ComputePageRank(
+		graph,
+		20,
+		0.85,
+	)
+
+	fmt.Printf(
+		"Computed PageRank for %d pages\n",
+		len(ranks),
+	)
+
 	docMap, err := indexer.LoadDocumentMap(db)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Loaded %d documents\n", len(docs))
 	idx := indexer.New()
-
+	idx.DocumentURL = docMap
+	idx.PageRanks = ranks
 	for _, doc := range docs {
 		idx.AddDocument(
 			doc.ID,

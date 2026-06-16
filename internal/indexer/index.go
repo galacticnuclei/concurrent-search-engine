@@ -6,16 +6,21 @@ import (
 )
 
 type InvertedIndex struct {
-	Terms   map[string]map[int]int
-	NumDocs int
+	Terms       map[string]map[int]int
+	NumDocs     int
+	DocumentURL map[int]string
+	PageRanks   map[string]float64
 }
 
 func New() *InvertedIndex {
 	return &InvertedIndex{
-		Terms:   make(map[string]map[int]int),
-		NumDocs: 0,
+		Terms:       make(map[string]map[int]int),
+		NumDocs:     0,
+		DocumentURL: make(map[int]string),
+		PageRanks:   make(map[string]float64),
 	}
 }
+
 func (idx *InvertedIndex) AddDocument(
 	docID int,
 	text string,
@@ -56,8 +61,10 @@ func (idx *InvertedIndex) IDF(
 }
 
 type Result struct {
-	DocID int
-	Score float64
+	DocID    int
+	TFIDF    float64
+	PageRank float64
+	Score    float64
 }
 
 func (idx *InvertedIndex) SearchRanked(
@@ -77,6 +84,7 @@ func (idx *InvertedIndex) SearchRanked(
 			results,
 			Result{
 				DocID: docID,
+				TFIDF: score,
 				Score: score,
 			},
 		)
@@ -92,7 +100,6 @@ func (idx *InvertedIndex) SearchRanked(
 
 	return results
 }
-
 func (idx *InvertedIndex) SearchQuery(
 	query string,
 ) []Result {
@@ -115,11 +122,21 @@ func (idx *InvertedIndex) SearchQuery(
 	var results []Result
 
 	for docID, score := range scores {
+		url := idx.DocumentURL[docID]
+		pageRank := idx.PageRanks[url]
+
+		finalScore := CombineScore(
+			score,
+			pageRank,
+		)
+
 		results = append(
 			results,
 			Result{
-				DocID: docID,
-				Score: score,
+				DocID:    docID,
+				TFIDF:    score,
+				PageRank: pageRank,
+				Score:    finalScore,
 			},
 		)
 	}
@@ -181,6 +198,7 @@ func (idx *InvertedIndex) SearchAND(
 			results,
 			Result{
 				DocID: docID,
+				TFIDF: score,
 				Score: score,
 			},
 		)
