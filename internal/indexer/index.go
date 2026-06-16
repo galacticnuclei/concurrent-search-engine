@@ -7,6 +7,7 @@ import (
 
 type InvertedIndex struct {
 	Terms       map[string]map[int]int
+	Positions   map[string]map[int][]int
 	NumDocs     int
 	DocumentURL map[int]string
 	PageRanks   map[string]float64
@@ -15,6 +16,7 @@ type InvertedIndex struct {
 func New() *InvertedIndex {
 	return &InvertedIndex{
 		Terms:       make(map[string]map[int]int),
+		Positions:   make(map[string]map[int][]int),
 		NumDocs:     0,
 		DocumentURL: make(map[int]string),
 		PageRanks:   make(map[string]float64),
@@ -29,12 +31,23 @@ func (idx *InvertedIndex) AddDocument(
 
 	tokens := Tokenize(text)
 
-	for _, token := range tokens {
+	for position, token := range tokens {
 		if _, exists := idx.Terms[token]; !exists {
 			idx.Terms[token] = make(map[int]int)
 		}
 
 		idx.Terms[token][docID]++
+
+		if _, exists := idx.Positions[token]; !exists {
+			idx.Positions[token] =
+				make(map[int][]int)
+		}
+
+		idx.Positions[token][docID] =
+			append(
+				idx.Positions[token][docID],
+				position,
+			)
 	}
 }
 
@@ -220,4 +233,62 @@ func (idx *InvertedIndex) SearchOR(
 	query string,
 ) []Result {
 	return idx.SearchQuery(query)
+}
+
+func (idx *InvertedIndex) SearchPhrase(
+	query string,
+) []Result {
+	tokens := Tokenize(query)
+
+	if len(tokens) != 2 {
+		return nil
+	}
+
+	first := tokens[0]
+	second := tokens[1]
+
+	firstDocs := idx.Positions[first]
+	secondDocs := idx.Positions[second]
+
+	var results []Result
+
+	for docID := range firstDocs {
+		_, exists := secondDocs[docID]
+		if !exists {
+			continue
+		}
+
+		firstPositions :=
+			firstDocs[docID]
+
+		secondPositions :=
+			secondDocs[docID]
+
+		found := false
+
+		for _, p1 := range firstPositions {
+			for _, p2 := range secondPositions {
+				if p2 == p1+1 {
+					found = true
+					break
+				}
+			}
+
+			if found {
+				break
+			}
+		}
+
+		if found {
+			results = append(
+				results,
+				Result{
+					DocID: docID,
+					Score: 1,
+				},
+			)
+		}
+	}
+
+	return results
 }

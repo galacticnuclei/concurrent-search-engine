@@ -61,7 +61,7 @@ func main() {
 		len(idx.Terms),
 	)
 
-	results := idx.SearchOR("github copilot")
+	results := idx.SearchPhrase("github copilot")
 
 	limit := 10
 	if len(results) < limit {
