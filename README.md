@@ -1,60 +1,64 @@
 # Concurrent Search Engine (Go)
 
-A concurrent search engine built in Go that crawls and indexes web pages into a PostgreSQL-backed inverted index and serves ranked search results through an HTTP JSON API.
+![Go](https://img.shields.io/badge/Go-1.26-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-The project implements a multi-stage search pipeline including concurrent crawling, content extraction, deduplication, inverted indexing, TF-IDF and PageRank ranking, Boolean retrieval, phrase search, and Dockerized deployment.
+A production-style search engine built in Go that crawls and indexes web pages into a PostgreSQL-backed inverted index and serves ranked search results through an HTTP JSON API.
+
+The system implements concurrent web crawling, SHA256-based deduplication, inverted indexing, TF-IDF and PageRank ranking, Boolean retrieval, phrase search, and Dockerized deployment.
 
 ---
 
-## Features
+# Features
 
-### Concurrent Web Crawling
+## Concurrent Web Crawling
 
 * Concurrent worker-based crawling pipeline using goroutines and channels
-* Recursive web crawling starting from seed URLs
+* Recursive web crawling from configurable seed URLs
 * URL normalization and canonicalization
 * robots.txt compliance
 * Visited URL tracking and deduplication
 * Link graph construction for PageRank
 
-### Storage Layer
+## Storage Layer
 
 * PostgreSQL-backed document and metadata storage
 * Persistent Docker volumes
-* Automatic database initialization using startup migrations
+* Automatic database initialization via `init.sql`
 * SHA256-based content deduplication
 * Incremental indexing support
 
-### Search Engine
+## Search Engine
 
-* Tokenization and text normalization
+* Tokenization and normalization
 * Inverted index with posting lists
 * Positional index for phrase search
-* Term Frequency (TF)
 * TF-IDF ranking
 * PageRank computation over crawled link graph
-* Combined ranking:
-  Final Score = f(TF-IDF, PageRank)
+* Combined ranking using TF-IDF and PageRank
 * Boolean query processing (AND / OR)
 * Phrase search
 
-### Search API
+## Search API
 
 * HTTP JSON search endpoint
 * Ranked search results
-* Document URLs and scores returned as JSON
+* Document URLs and ranking scores
 * Sub-millisecond average query latency
 
-### Deployment
+## Deployment
 
 * Dockerized crawler
 * Dockerized search API
 * Dockerized PostgreSQL
 * Persistent database volumes
-* Automatic schema initialization via init.sql
+* Automatic schema initialization
 
 ---
-## Architecture
+
+# System Architecture
 
 ```mermaid
 flowchart TD
@@ -80,28 +84,114 @@ flowchart TD
 
 ---
 
+# Crawling Pipeline
+
+```mermaid
+flowchart LR
+    A[Seed URLs]
+    B[Frontier Queue]
+    C[Worker Pool]
+    D[Fetch Page]
+    E[Parse HTML]
+    F[Extract Links]
+    G[Store Document]
+    H[Discovered URLs]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    E --> G
+    F --> H
+    H --> B
+```
+
+---
+
+# Search Pipeline
+
+```mermaid
+flowchart LR
+    A[Query]
+    B[Tokenizer]
+    C[Inverted Index Lookup]
+    D[TF-IDF Computation]
+    E[PageRank Lookup]
+    F[Combined Ranking]
+    G[Sort Results]
+    H[JSON Response]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> F
+    E --> F
+    F --> G
+    G --> H
+```
+
+---
+
+# Deployment Architecture
+
+```mermaid
+flowchart LR
+    A[Search API :8080]
+    B[(PostgreSQL :5432)]
+    C[Concurrent Crawler]
+
+    A --> B
+    C --> B
+```
+
+---
+
+# Database Schema
+
+```mermaid
+erDiagram
+    DOCUMENTS {
+        int id PK
+        text url
+        text title
+        text content
+        text content_hash
+        timestamp created_at
+    }
+
+    LINKS {
+        text from_url
+        text to_url
+    }
+
+    DOCUMENTS ||--o{ LINKS : generates
+```
+
+---
+
 # Tech Stack
 
-Language:
+### Language
 
-* Go
+* Go 1.26
 
-Database:
+### Database
 
-* PostgreSQL
+* PostgreSQL 17
 
-Libraries:
+### Infrastructure
+
+* Docker
+* Docker Compose
+
+### Libraries
 
 * net/http
 * goquery
 * lib/pq
 
-Infrastructure:
-
-* Docker
-* Docker Compose
-
-Algorithms:
+### Algorithms
 
 * Inverted Index
 * Positional Index
@@ -110,7 +200,7 @@ Algorithms:
 * Boolean Retrieval
 * Phrase Search
 
-Concepts:
+### Systems Concepts
 
 * Goroutines
 * Channels
@@ -120,51 +210,6 @@ Concepts:
 * Incremental Indexing
 * Persistent Volumes
 * REST APIs
-
----
-
-# Database Schema
-
-documents
-
-| Column       | Type               |
-| ------------ | ------------------ |
-| id           | SERIAL PRIMARY KEY |
-| url          | TEXT UNIQUE        |
-| title        | TEXT               |
-| content      | TEXT               |
-| content_hash | TEXT UNIQUE        |
-| created_at   | TIMESTAMP          |
-
-links
-
-| Column   | Type |
-| -------- | ---- |
-| from_url | TEXT |
-| to_url   | TEXT |
-
-Unique Constraint:
-(from_url, to_url)
-
----
-
-# Search Pipeline
-
-Query
-↓
-Tokenizer
-↓
-Inverted Index Lookup
-↓
-TF-IDF Computation
-↓
-PageRank Lookup
-↓
-Combined Ranking
-↓
-Sort Results
-↓
-JSON Response
 
 ---
 
@@ -183,34 +228,31 @@ cd concurrent-search-engine
 docker compose up
 ```
 
-Services:
+### Services
 
-PostgreSQL:
-localhost:5433
-
-Search API:
-http://localhost:8080
-
-Crawler:
-runs continuously inside Docker
+| Service    | Endpoint                        |
+| ---------- | ------------------------------- |
+| Search API | http://localhost:8080           |
+| PostgreSQL | localhost:5433                  |
+| Crawler    | Runs continuously inside Docker |
 
 ---
 
 # Search Endpoint
 
-Search:
+### Request
 
 ```http
 GET /search?q=github
 ```
 
-Example:
+### Example
 
 ```bash
 curl "http://localhost:8080/search?q=github"
 ```
 
-Example Response:
+### Example Response
 
 ```json
 [
@@ -227,26 +269,26 @@ Example Response:
 
 # Search Capabilities
 
-Term Search
+### Term Search
 
 ```text
 github
 ```
 
-Multi-word Query
+### Multi-word Search
 
 ```text
 github copilot
 ```
 
-Boolean Search
+### Boolean Search
 
 ```text
 github AND copilot
 github OR docker
 ```
 
-Phrase Search
+### Phrase Search
 
 ```text
 "github copilot"
@@ -256,28 +298,22 @@ Phrase Search
 
 # Performance Benchmarks
 
-Crawling
-
-* Pages Crawled: 7,069+
-* Workers: 5
-* Throughput: 141.38 pages/sec
-
-Indexing
-
-* Documents Indexed: 416
-* Indexing Throughput: 127.92 documents/sec
-* Unique Terms Indexed: 54K+
-
-Query Serving
-
-* Average Query Latency: <1 ms
-* End-to-End Throughput: ~10 queries/sec
+| Metric                | Result           |
+| --------------------- | ---------------- |
+| Pages Crawled         | 7,069+           |
+| Workers               | 5                |
+| Crawling Throughput   | 141.38 pages/sec |
+| Documents Indexed     | 416              |
+| Indexing Throughput   | 127.92 docs/sec  |
+| Unique Terms Indexed  | 54K+             |
+| Average Query Latency | <1 ms            |
+| End-to-End Throughput | ~10 queries/sec  |
 
 ---
 
 # Project Structure
 
-```
+```text
 cmd/
 ├── crawler
 ├── indexer
@@ -306,12 +342,11 @@ go.sum
 # Future Improvements
 
 * Distributed crawling across multiple nodes
+* BM25 ranking
+* Posting list compression
 * Anchor text indexing
 * Query autocomplete
 * Snippet generation
-* BM25 ranking
-* Compression of posting lists
-* Distributed inverted indexes
 * Real-time incremental indexing
 * Web frontend
 * Search analytics dashboard
@@ -320,7 +355,7 @@ go.sum
 
 # Key Learnings
 
-This project involved building a production-style search system and required concepts from:
+This project required concepts from:
 
 * Concurrent Systems
 * Databases
