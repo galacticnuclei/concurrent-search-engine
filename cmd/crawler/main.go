@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/crawler"
@@ -11,8 +12,11 @@ import (
 )
 
 func main() {
-	connStr := "host=localhost port=5432 user=postgres password=psql@1428*# dbname=search_engine sslmode=disable"
+	connStr := os.Getenv("DATABASE_URL")
 
+	if connStr == "" {
+		log.Fatal("DATABASE_URL not set")
+	}
 	db, err := storage.NewPostgres(connStr)
 	if err != nil {
 		log.Fatal(err)

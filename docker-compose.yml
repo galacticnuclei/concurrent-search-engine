@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: search-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: search_engine
+    ports:
+      - "5433:5432"
+
+  searchapi:
+    build: .
+    container_name: search-api
+    command: ./searchapi
+    environment:
+      DATABASE_URL: host=postgres port=5432 user=postgres password=postgres dbname=search_engine sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  crawler:
+    build: .
+    container_name: search-crawler
+    command: ./crawler
+    environment:
+      DATABASE_URL: host=postgres port=5432 user=postgres password=postgres dbname=search_engine sslmode=disable
+    depends_on:
+      - postgres
