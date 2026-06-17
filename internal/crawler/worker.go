@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/frontier"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/robots"
@@ -32,6 +33,19 @@ func StartWorker(
 			fmt.Printf("Worker %d error: %v\n", id, err)
 			continue
 		}
+
+		doc.Content = strings.ToValidUTF8(
+			doc.Content,
+			"",
+		)
+
+		const MaxContentSize = 100000
+
+		if len(doc.Content) > MaxContentSize {
+			doc.Content =
+				doc.Content[:MaxContentSize]
+		}
+
 		changed, err :=
 			store.ContentChanged(
 				doc.URL,

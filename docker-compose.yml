@@ -8,6 +8,9 @@ services:
       POSTGRES_DB: search_engine
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   searchapi:
     build: .
@@ -28,3 +31,6 @@ services:
       DATABASE_URL: host=postgres port=5432 user=postgres password=postgres dbname=search_engine sslmode=disable
     depends_on:
       - postgres
+
+volumes:
+  postgres_data:

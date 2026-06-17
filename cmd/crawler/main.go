@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/crawler"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/frontier"
@@ -52,5 +51,5 @@ func main() {
 		}
 	}
 
-	time.Sleep(60 * time.Second)
+	select {}
 }
