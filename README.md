@@ -1,10 +1,5 @@
 # Concurrent Search Engine (Go)
 
-![Go](https://img.shields.io/badge/Go-1.26-blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
-![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-
 A production-style search engine built in Go that crawls and indexes web pages into a PostgreSQL-backed inverted index and serves ranked search results through an HTTP JSON API.
 
 The system implements concurrent web crawling, SHA256-based deduplication, inverted indexing, TF-IDF and PageRank ranking, Boolean retrieval, phrase search, and Dockerized deployment.
