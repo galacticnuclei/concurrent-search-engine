@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/indexer"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/storage"
@@ -18,6 +19,10 @@ func main() {
 	defer db.Close()
 
 	docs, err := indexer.LoadDocuments(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	graph, err := indexer.LoadLinkGraph(db)
 	if err != nil {
 		log.Fatal(err)
@@ -27,9 +32,7 @@ func main() {
 		"Loaded %d pages with outgoing links\n",
 		len(graph),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	ranks := indexer.ComputePageRank(
 		graph,
 		20,
@@ -45,10 +48,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Loaded %d documents\n", len(docs))
+
+	fmt.Printf(
+		"Loaded %d documents\n",
+		len(docs),
+	)
+
 	idx := indexer.New()
 	idx.DocumentURL = docMap
 	idx.PageRanks = ranks
+
+	start := time.Now()
+
 	for _, doc := range docs {
 		idx.AddDocument(
 			doc.ID,
@@ -56,12 +67,28 @@ func main() {
 		)
 	}
 
+	elapsed := time.Since(start)
+
+	fmt.Printf(
+		"Indexed %d docs in %v\n",
+		len(docs),
+		elapsed,
+	)
+
+	fmt.Printf(
+		"Docs/sec: %.2f\n",
+		float64(len(docs))/
+			elapsed.Seconds(),
+	)
+
 	fmt.Printf(
 		"Indexed %d unique terms\n",
 		len(idx.Terms),
 	)
 
-	results := idx.SearchPhrase("github copilot")
+	results := idx.SearchPhrase(
+		"github copilot",
+	)
 
 	limit := 10
 	if len(results) < limit {

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/indexer"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/storage"
@@ -23,6 +24,7 @@ func main() {
 	if connStr == "" {
 		log.Fatal("DATABASE_URL not set")
 	}
+
 	db, err := storage.NewPostgres(connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -60,6 +62,7 @@ func main() {
 			doc.Content,
 		)
 	}
+
 	for url, rank := range ranks {
 		log.Printf(
 			"%s -> %.6f",
@@ -68,16 +71,20 @@ func main() {
 		)
 		break
 	}
+
 	log.Printf(
 		"PageRank entries: %d",
 		len(ranks),
 	)
+
 	http.HandleFunc(
 		"/search",
 		func(
 			w http.ResponseWriter,
 			r *http.Request,
 		) {
+			start := time.Now()
+
 			query :=
 				r.URL.Query().Get("q")
 
@@ -94,17 +101,25 @@ func main() {
 			for i := 0; i < limit; i++ {
 				result := results[i]
 
-				response =
-					append(
-						response,
-						SearchResponse{
-							URL:      docMap[result.DocID],
-							Score:    result.Score,
-							TFIDF:    result.TFIDF,
-							PageRank: result.PageRank,
-						},
-					)
+				response = append(
+					response,
+					SearchResponse{
+						URL:      docMap[result.DocID],
+						Score:    result.Score,
+						TFIDF:    result.TFIDF,
+						PageRank: result.PageRank,
+					},
+				)
 			}
+
+			latency :=
+				time.Since(start)
+
+			log.Printf(
+				"Query=%q Latency=%v",
+				query,
+				latency,
+			)
 
 			w.Header().Set(
 				"Content-Type",

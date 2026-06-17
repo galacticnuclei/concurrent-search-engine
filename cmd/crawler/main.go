@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/galacticnuclei/concurrent-search-engine/internal/crawler"
 	"github.com/galacticnuclei/concurrent-search-engine/internal/frontier"
@@ -26,6 +28,7 @@ func main() {
 
 	f := frontier.New(10000)
 	visited := frontier.NewVisited()
+	start := time.Now()
 	robotsCache := robots.NewCache()
 
 	for i := 1; i <= 5; i++ {
@@ -51,5 +54,21 @@ func main() {
 		}
 	}
 
-	select {}
+	ticker := time.NewTicker(
+		10 * time.Second,
+	)
+
+	for range ticker.C {
+		elapsed :=
+			time.Since(start).Seconds()
+
+		pages :=
+			visited.Count()
+
+		fmt.Printf(
+			"\nPages: %d\nPages/sec: %.2f\n\n",
+			pages,
+			float64(pages)/elapsed,
+		)
+	}
 }
