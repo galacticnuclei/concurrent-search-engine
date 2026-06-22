@@ -362,7 +362,3 @@ This project required concepts from:
 * Performance Benchmarking
 
 ---
-
-# Resume Summary
-
-Built a concurrent search engine in Go that crawled and indexed 7K+ web pages using a 5-worker pipeline with robots.txt compliance, SHA256-based deduplication, and PostgreSQL-backed metadata storage. Implemented an inverted index supporting TF-IDF/PageRank ranking, Boolean retrieval, phrase search, and an HTTP JSON search API with sub-millisecond average query latency. Dockerized the crawler, API, and PostgreSQL deployment using Docker Compose with persistent volumes and automated schema initialization, achieving crawling throughput of 141 pages/sec and indexing throughput of 128 documents/sec.
